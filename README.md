@@ -1,11 +1,10 @@
 # anthropic-safety-monitor
 
-Anthropic Innovation: Solves agentic misalignment and safety bottlenecks.
+**Portfolio motion** — tool-use safety policy for agents (Anthropic-class problem space).
 
-## Pro Code Philosophy
+Not Anthropic employment. Pairs with AKOS + pro-code.
 
-Take what is known. Make it better. Do not touch the core.
-
-## The Imovable Force
-
-A force that does not move is not weak. It is so correct that it does not need to move.
+```bash
+python3 src/safety_monitor.py
+python3 tests/test_safety_monitor.py
+```
