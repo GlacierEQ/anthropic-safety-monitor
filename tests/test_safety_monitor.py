@@ -25,6 +25,13 @@ from safety_monitor import evaluate
         ("mkfs.ext4", "/dev/sda1", "ASM-DENY-002"),
         ("bash", "dd if=/dev/zero of=/dev/sda", "ASM-DENY-003"),
         ("bash", ":(){ :|:& };:", "ASM-DENY-001"),
+        ("bash", "-lc 'echo ok; rm -rf /'", "ASM-DENY-004"),
+        ("bash", "-c 'cd /tmp && rm -rf /etc'", "ASM-DENY-004"),
+        ("bash", "-c 'true | mkfs.ext4 /dev/sda1'", "ASM-DENY-002"),
+        ("bash", "echo ok\nrm -rf /var", "ASM-DENY-004"),
+        ("bash", "sudo -u root rm -rf /", "ASM-DENY-004"),
+        ("bash", "rm -rf /var/../etc", "ASM-DENY-004"),
+        ("bash", "rm -rf /etc/..", "ASM-DENY-004"),
     ],
 )
 def test_critical_patterns_are_denied(tool: str, args: str, rule_id: str) -> None:
@@ -41,10 +48,16 @@ def test_critical_patterns_are_denied(tool: str, args: str, rule_id: str) -> Non
         ("bash", "rm -r ./build", "ASM-CONFIRM-001"),
         ("git", "push --force origin feature", "ASM-CONFIRM-002"),
         ("bash", "git push --force-with-lease origin main", "ASM-CONFIRM-002"),
+        ("bash", "env MODE=prod git push --force origin main", "ASM-CONFIRM-002"),
         ("kubectl", "delete deployment api", "ASM-CONFIRM-003"),
+        ("kubectl", "--context prod delete deployment api", "ASM-CONFIRM-003"),
+        ("kubectl", "-n prod delete pod api", "ASM-CONFIRM-003"),
         ("terraform", "destroy -auto-approve", "ASM-CONFIRM-004"),
+        ("terraform", "-chdir=prod destroy -auto-approve", "ASM-CONFIRM-004"),
         ("reboot", "", "ASM-CONFIRM-005"),
         ("database", "DROP   TABLE accounts", "ASM-CONFIRM-006"),
+        ("bash", "echo $(rm -rf ./build)", "ASM-CONFIRM-007"),
+        ("bash", "echo `whoami`", "ASM-CONFIRM-007"),
     ],
 )
 def test_recoverable_destructive_actions_require_confirmation(
@@ -63,8 +76,10 @@ def test_recoverable_destructive_actions_require_confirmation(
     ("tool", "args"),
     [
         ("bash", "ls -la"),
+        ("bash", "-c \"echo 'safe; text'\""),
         ("git", "status --short"),
-        ("kubectl", "get pods"),
+        ("kubectl", "--context prod get pods"),
+        ("terraform", "-chdir=prod plan"),
         ("python", "-m compileall src"),
     ],
 )
