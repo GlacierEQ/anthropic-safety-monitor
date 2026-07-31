@@ -17,20 +17,14 @@ def _write_junit(
 ) -> None:
     cases: list[str] = []
     cases.extend(f'<testcase name="pass-{index}" />' for index in range(passed))
-    cases.extend(
-        f'<testcase name="fail-{index}"><failure /></testcase>' for index in range(failed)
-    )
-    cases.extend(
-        f'<testcase name="error-{index}"><error /></testcase>' for index in range(errors)
-    )
+    cases.extend(f'<testcase name="fail-{index}"><failure /></testcase>' for index in range(failed))
+    cases.extend(f'<testcase name="error-{index}"><error /></testcase>' for index in range(errors))
     cases.extend(
         f'<testcase name="skip-{index}"><skipped /></testcase>' for index in range(skipped)
     )
     path.write_text(
         '<?xml version="1.0" encoding="utf-8"?>'
-        '<testsuites><testsuite name="suite">'
-        + "".join(cases)
-        + "</testsuite></testsuites>",
+        '<testsuites><testsuite name="suite">' + "".join(cases) + "</testsuite></testsuites>",
         encoding="utf-8",
     )
 
@@ -170,6 +164,5 @@ def test_headings_inside_code_fence_do_not_satisfy_contract(tmp_path: Path) -> N
         encoding="utf-8",
     )
     assert any(
-        error.startswith("missing required audience headings")
-        for error in verify_readme(readme)
+        error.startswith("missing required audience headings") for error in verify_readme(readme)
     )
