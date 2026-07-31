@@ -1,0 +1,84 @@
+{
+  "schema": "glaciereq.portfolio.child-native-verification.v1",
+  "repository": "GlacierEQ/anthropic-safety-monitor",
+  "canonical_branch": "master",
+  "candidate_branch": "wave-1/safety-monitor-promotion-2026-07-31",
+  "verified_source_head": "3e32b5d54ab9d622a74fbacc1a35e3386c52f107",
+  "workflow": {
+    "name": "Safety Monitor Verification",
+    "run_id": 30645777132,
+    "conclusion": "success",
+    "receipt_identity": "pull_request_head_sha",
+    "matrix": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ]
+  },
+  "acceptance": {
+    "package_install": "PASS",
+    "dependency_check": "PASS",
+    "ruff_lint": "PASS",
+    "ruff_format": "PASS",
+    "bytecode_compile": "PASS",
+    "source_distribution_build": "PASS",
+    "wheel_build": "PASS",
+    "readme_contract": "PASS",
+    "cli_contract": "PASS",
+    "positive_test_count": "PASS",
+    "artifact_upload": "PASS",
+    "review_security_regressions": "PASS"
+  },
+  "tests": {
+    "per_python_version": 51,
+    "executed_per_python_version": 51,
+    "failures_per_python_version": 0,
+    "errors_per_python_version": 0,
+    "skipped_per_python_version": 0,
+    "total_matrix_executions": 153
+  },
+  "receipts": [
+    {
+      "python": "3.11",
+      "junit_sha256": "f9c596e8bf3de94f2fe97600088d874908159be6df58576b287e4aee8c88005f",
+      "artifact_id": 8799335708,
+      "artifact_sha256": "bc271eb04ecb46a09866706157fc1325ca3285e232cae576d1ef9c317d863731"
+    },
+    {
+      "python": "3.12",
+      "junit_sha256": "2573601291cf5b9d45abd479f4ae1e3f73cbd4c6b8ea04d855a587f2dd7617a4",
+      "artifact_id": 8799335948,
+      "artifact_sha256": "ab3d1c6258743529acb5f1c5150fb3f9adc725abda4c789c1af15d07f60b186e"
+    },
+    {
+      "python": "3.13",
+      "junit_sha256": "554e5bec654aae672df4207ddf2bd79b92c94c04978f8c0a26c5e410bde054ea",
+      "artifact_id": 8799334031,
+      "artifact_sha256": "259de975bc9ad7e5db9ca24a2dfe06adcafb4edc06c3b94fd662622670c22aab"
+    }
+  ],
+  "security_hardening": {
+    "shell_command_chaining_reviewed": true,
+    "sudo_and_env_wrappers_normalized": true,
+    "critical_paths_lexically_normalized": true,
+    "kubectl_global_options_supported": true,
+    "terraform_chdir_supported": true,
+    "junit_single_descriptor_bounded_read": true,
+    "xml_dtd_entities_and_external_references_forbidden": true,
+    "pull_request_receipts_bound_to_head_sha": true
+  },
+  "evidence": {
+    "achieved_level": "TEST",
+    "conclusion": "VERIFIED_CANDIDATE",
+    "positive_count_enforced": true,
+    "zero_test_success_allowed": false
+  },
+  "nonclaims": {
+    "tool_execution": false,
+    "semantic_safety_completeness": false,
+    "automatic_approval": false,
+    "production_detection_coverage": false,
+    "deployment_verified": false,
+    "anthropic_affiliation": false
+  }
+}
