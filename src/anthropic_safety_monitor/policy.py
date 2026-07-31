@@ -388,10 +388,14 @@ def _review_confirmation(tokens: Sequence[str], text: str) -> ReviewResult | Non
                     Severity.HIGH,
                 )
 
-        if command == "kubectl" and _subcommand(
-            args,
-            value_options=KUBECTL_GLOBAL_VALUE_OPTIONS,
-        ) == "delete":
+        if (
+            command == "kubectl"
+            and _subcommand(
+                args,
+                value_options=KUBECTL_GLOBAL_VALUE_OPTIONS,
+            )
+            == "delete"
+        ):
             return _result(
                 Decision.CONFIRM,
                 "ASM-CONFIRM-003",
@@ -399,10 +403,14 @@ def _review_confirmation(tokens: Sequence[str], text: str) -> ReviewResult | Non
                 Severity.HIGH,
             )
 
-        if command == "terraform" and _subcommand(
-            args,
-            value_options=frozenset({"-chdir"}),
-        ) == "destroy":
+        if (
+            command == "terraform"
+            and _subcommand(
+                args,
+                value_options=frozenset({"-chdir"}),
+            )
+            == "destroy"
+        ):
             return _result(
                 Decision.CONFIRM,
                 "ASM-CONFIRM-004",
@@ -494,11 +502,15 @@ def review_tool_call(call: ToolCall) -> ReviewResult:
             )
         candidates.append(result)
 
-    result = _strongest(candidates) if candidates else _result(
-        Decision.ALLOW,
-        "ASM-ALLOW-DEFAULT",
-        "no configured policy rule matched the proposed call",
-        Severity.NONE,
+    result = (
+        _strongest(candidates)
+        if candidates
+        else _result(
+            Decision.ALLOW,
+            "ASM-ALLOW-DEFAULT",
+            "no configured policy rule matched the proposed call",
+            Severity.NONE,
+        )
     )
     return ReviewResult(
         call=call,
