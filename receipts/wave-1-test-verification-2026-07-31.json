@@ -1,0 +1,72 @@
+{
+  "schema": "glaciereq.portfolio.child-native-verification.v1",
+  "repository": "GlacierEQ/anthropic-safety-monitor",
+  "canonical_branch": "master",
+  "candidate_branch": "wave-1/safety-monitor-promotion-2026-07-31",
+  "verified_source_head": "baf6f609f876a9e935138cf4794a958c4ee1c209",
+  "workflow": {
+    "name": "Safety Monitor Verification",
+    "run_id": 30644729884,
+    "conclusion": "success",
+    "matrix": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ]
+  },
+  "acceptance": {
+    "package_install": "PASS",
+    "dependency_check": "PASS",
+    "ruff_lint": "PASS",
+    "ruff_format": "PASS",
+    "bytecode_compile": "PASS",
+    "source_distribution_build": "PASS",
+    "wheel_build": "PASS",
+    "readme_contract": "PASS",
+    "cli_contract": "PASS",
+    "positive_test_count": "PASS",
+    "artifact_upload": "PASS"
+  },
+  "tests": {
+    "per_python_version": 36,
+    "executed_per_python_version": 36,
+    "failures_per_python_version": 0,
+    "errors_per_python_version": 0,
+    "skipped_per_python_version": 0,
+    "total_matrix_executions": 108
+  },
+  "receipts": [
+    {
+      "python": "3.11",
+      "junit_sha256": "3df7ee94b37ca91659ebf94da7b8fbbf14d6bcde6326c56c620238f68201975f",
+      "artifact_id": 8798928531,
+      "artifact_sha256": "181746c400005d841e9a46233d3512ccfdef3a5e62d9b5e5b59706a93846aca7"
+    },
+    {
+      "python": "3.12",
+      "junit_sha256": "caa6f16b6ddda849e0f2b97f1f1f9105e6c14ff8808eb994921e6da541cc94eb",
+      "artifact_id": 8798930067,
+      "artifact_sha256": "dae58c84b97664ef337d2d7882b3d6ed6a4d7bed506de3e9cf88080e9320c304"
+    },
+    {
+      "python": "3.13",
+      "junit_sha256": "e34f3a05d4589e49698c3f6eb9e2aa8bb9f15699eb23e46263ff9bf48119c53b",
+      "artifact_id": 8798931190,
+      "artifact_sha256": "9b72a2f880be4606b65acae35271974d67018cc5d52e9fec9f39128c342478cd"
+    }
+  ],
+  "evidence": {
+    "achieved_level": "TEST",
+    "conclusion": "VERIFIED_CANDIDATE",
+    "positive_count_enforced": true,
+    "zero_test_success_allowed": false
+  },
+  "nonclaims": {
+    "tool_execution": false,
+    "semantic_safety_completeness": false,
+    "automatic_approval": false,
+    "production_detection_coverage": false,
+    "deployment_verified": false,
+    "anthropic_affiliation": false
+  }
+}
