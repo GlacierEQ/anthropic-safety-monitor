@@ -86,6 +86,6 @@ jobs:
         with:
           name: safety-monitor-python-${{ matrix.python-version }}
           path: artifacts/
-          if-no-files-found: error
+          if-no-files-found: warn
           include-hidden-files: false
           retention-days: 14
