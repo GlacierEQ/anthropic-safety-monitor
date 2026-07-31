@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import posixpath
 import re
 import shlex
 from collections import Counter
@@ -12,6 +13,8 @@ SCHEMA = "glaciereq.anthropic-safety-monitor.review.v1"
 BATCH_SCHEMA = "glaciereq.anthropic-safety-monitor.batch.v1"
 MAX_ARGUMENT_BYTES = 65_536
 SHELL_TOOLS = frozenset({"bash", "sh", "shell", "terminal", "zsh"})
+SHELL_EXECUTION_FLAGS = frozenset({"-c", "-ec", "-lc"})
+SHELL_SEPARATORS = frozenset({";", "&&", "||", "|", "&", "\n"})
 CRITICAL_ROOTS = frozenset(
     {
         "/",
@@ -33,6 +36,55 @@ CRITICAL_ROOTS = frozenset(
 )
 DROP_TABLE_RE = re.compile(r"\bdrop\s+table\b", re.IGNORECASE)
 FORK_BOMB_RE = re.compile(r":\s*\(\s*\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:")
+DYNAMIC_SHELL_RE = re.compile(r"\$\(|`")
+KUBECTL_GLOBAL_VALUE_OPTIONS = frozenset(
+    {
+        "--as",
+        "--as-group",
+        "--cache-dir",
+        "--certificate-authority",
+        "--client-certificate",
+        "--client-key",
+        "--cluster",
+        "--context",
+        "--kubeconfig",
+        "--namespace",
+        "--password",
+        "--profile",
+        "--profile-output",
+        "--request-timeout",
+        "--server",
+        "--tls-server-name",
+        "--token",
+        "--user",
+        "--username",
+        "-n",
+        "-s",
+    }
+)
+SUDO_VALUE_OPTIONS = frozenset(
+    {
+        "--chdir",
+        "--close-from",
+        "--command-timeout",
+        "--group",
+        "--host",
+        "--prompt",
+        "--role",
+        "--type",
+        "--user",
+        "-C",
+        "-D",
+        "-g",
+        "-h",
+        "-p",
+        "-R",
+        "-T",
+        "-t",
+        "-u",
+    }
+)
+ENV_VALUE_OPTIONS = frozenset({"--chdir", "--split-string", "--unset", "-C", "-S", "-u"})
 
 
 class PolicyInputError(ValueError):
@@ -130,34 +182,102 @@ def _basename(value: str) -> str:
     return PurePosixPath(value).name.casefold()
 
 
-def _split_shell_payload(tokens: list[str]) -> list[str]:
-    if not tokens:
-        return []
-    if tokens[0] in {"-c", "-lc", "-ec"}:
-        if len(tokens) < 2:
-            raise PolicyInputError("shell execution flag requires a command payload")
-        try:
-            return shlex.split(tokens[1], posix=True)
-        except ValueError as exc:
-            raise PolicyInputError(f"invalid nested shell arguments: {exc}") from exc
-    return tokens
+def _shell_tokens(payload: str) -> list[str]:
+    try:
+        lexer = shlex.shlex(payload, posix=True, punctuation_chars=";&|\n")
+        lexer.whitespace = " \t\r"
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        return list(lexer)
+    except ValueError as exc:
+        raise PolicyInputError(f"invalid shell arguments: {exc}") from exc
 
 
-def _command_tokens(call: ToolCall) -> list[str]:
-    call.validate()
-    name = _basename(call.name.strip())
+def _shell_payload(call: ToolCall) -> str:
     try:
         arguments = shlex.split(call.args, posix=True)
     except ValueError as exc:
         raise PolicyInputError(f"invalid shell-style arguments: {exc}") from exc
 
+    for index, argument in enumerate(arguments):
+        if argument in SHELL_EXECUTION_FLAGS:
+            if index + 1 >= len(arguments):
+                raise PolicyInputError("shell execution flag requires a command payload")
+            return arguments[index + 1]
+    return call.args
+
+
+def _split_segments(tokens: Sequence[str]) -> tuple[tuple[str, ...], ...]:
+    segments: list[list[str]] = [[]]
+    for token in tokens:
+        if token in SHELL_SEPARATORS:
+            if segments[-1]:
+                segments.append([])
+            continue
+        segments[-1].append(token)
+    return tuple(tuple(segment) for segment in segments if segment)
+
+
+def _command_segments(call: ToolCall) -> tuple[tuple[str, ...], ...]:
+    call.validate()
+    name = _basename(call.name.strip())
     if name in SHELL_TOOLS:
-        return _split_shell_payload(arguments)
-    return [name, *arguments]
+        return _split_segments(_shell_tokens(_shell_payload(call)))
+
+    try:
+        arguments = shlex.split(call.args, posix=True)
+    except ValueError as exc:
+        raise PolicyInputError(f"invalid shell-style arguments: {exc}") from exc
+    return ((name, *arguments),)
 
 
-def _normalized_text(call: ToolCall) -> str:
-    return f"{call.name.strip()} {call.args.strip()}".strip()
+def _skip_options(
+    tokens: Sequence[str],
+    *,
+    value_options: frozenset[str],
+    assignments: bool = False,
+) -> list[str]:
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            return list(tokens[index + 1 :])
+        if assignments and "=" in token and not token.startswith("-"):
+            index += 1
+            continue
+        option_name = token.split("=", 1)[0]
+        if option_name in value_options:
+            index += 1 if "=" in token else 2
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        return list(tokens[index:])
+    return []
+
+
+def _strip_wrappers(tokens: Sequence[str]) -> list[str]:
+    normalized = list(tokens)
+    while normalized:
+        command = _basename(normalized[0])
+        if command in {"command", "exec", "nohup"}:
+            normalized = normalized[1:]
+            continue
+        if command == "env":
+            normalized = _skip_options(
+                normalized[1:],
+                value_options=ENV_VALUE_OPTIONS,
+                assignments=True,
+            )
+            continue
+        if command == "sudo":
+            normalized = _skip_options(
+                normalized[1:],
+                value_options=SUDO_VALUE_OPTIONS,
+            )
+            continue
+        break
+    return normalized
 
 
 def _flag_characters(tokens: Sequence[str]) -> set[str]:
@@ -189,10 +309,17 @@ def _operands(tokens: Sequence[str]) -> list[str]:
 
 
 def _is_critical_path(value: str) -> bool:
-    normalized = value.rstrip("/") or "/"
+    if not value.startswith("/"):
+        return False
+    normalized = posixpath.normpath(value)
     if normalized in {"/*", "/."}:
         return True
     return normalized in CRITICAL_ROOTS
+
+
+def _subcommand(tokens: Sequence[str], *, value_options: frozenset[str]) -> str | None:
+    remaining = _skip_options(tokens, value_options=value_options)
+    return remaining[0].casefold() if remaining else None
 
 
 def _review_critical_shell(tokens: Sequence[str], text: str) -> ReviewResult | None:
@@ -261,7 +388,10 @@ def _review_confirmation(tokens: Sequence[str], text: str) -> ReviewResult | Non
                     Severity.HIGH,
                 )
 
-        if command == "kubectl" and args and args[0] == "delete":
+        if command == "kubectl" and _subcommand(
+            args,
+            value_options=KUBECTL_GLOBAL_VALUE_OPTIONS,
+        ) == "delete":
             return _result(
                 Decision.CONFIRM,
                 "ASM-CONFIRM-003",
@@ -269,7 +399,10 @@ def _review_confirmation(tokens: Sequence[str], text: str) -> ReviewResult | Non
                 Severity.HIGH,
             )
 
-        if command == "terraform" and args and args[0] == "destroy":
+        if command == "terraform" and _subcommand(
+            args,
+            value_options=frozenset({"-chdir"}),
+        ) == "destroy":
             return _result(
                 Decision.CONFIRM,
                 "ASM-CONFIRM-004",
@@ -313,22 +446,60 @@ def _result(
     )
 
 
+def _strongest(results: Sequence[ReviewResult]) -> ReviewResult:
+    return max(results, key=lambda result: _DECISION_RANK[result.decision])
+
+
 def review_tool_call(call: ToolCall) -> ReviewResult:
     """Review one proposed call without executing it or claiming semantic safety."""
 
-    tokens = _command_tokens(call)
-    text = _normalized_text(call)
+    segments = _command_segments(call)
+    candidates: list[ReviewResult] = []
 
-    result = _review_critical_shell(tokens, text)
-    if result is None:
-        result = _review_confirmation(tokens, text)
-    if result is None:
-        result = _result(
-            Decision.ALLOW,
-            "ASM-ALLOW-DEFAULT",
-            "no configured policy rule matched the proposed call",
-            Severity.NONE,
-        )
+    if _basename(call.name.strip()) in SHELL_TOOLS:
+        payload = _shell_payload(call)
+        if FORK_BOMB_RE.search(payload):
+            candidates.append(
+                _result(
+                    Decision.DENY,
+                    "ASM-DENY-001",
+                    "fork-bomb pattern would create uncontrolled local processes",
+                    Severity.CRITICAL,
+                )
+            )
+        if DYNAMIC_SHELL_RE.search(payload):
+            candidates.append(
+                _result(
+                    Decision.CONFIRM,
+                    "ASM-CONFIRM-007",
+                    "dynamic shell expansion requires explicit human confirmation",
+                    Severity.HIGH,
+                )
+            )
+
+    for raw_segment in segments:
+        segment = _strip_wrappers(raw_segment)
+        if not segment:
+            continue
+        text = " ".join(segment)
+        result = _review_critical_shell(segment, text)
+        if result is None:
+            result = _review_confirmation(segment, text)
+        if result is None:
+            result = _result(
+                Decision.ALLOW,
+                "ASM-ALLOW-DEFAULT",
+                "no configured policy rule matched the proposed call",
+                Severity.NONE,
+            )
+        candidates.append(result)
+
+    result = _strongest(candidates) if candidates else _result(
+        Decision.ALLOW,
+        "ASM-ALLOW-DEFAULT",
+        "no configured policy rule matched the proposed call",
+        Severity.NONE,
+    )
     return ReviewResult(
         call=call,
         decision=result.decision,
