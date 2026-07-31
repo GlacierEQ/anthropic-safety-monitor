@@ -5,6 +5,7 @@ New code should import :mod:`anthropic_safety_monitor`. This module preserves
 historical imports without retaining decorative confidence scores or sentinel
 answers.
 """
+
 from __future__ import annotations
 
 from anthropic_safety_monitor import (
