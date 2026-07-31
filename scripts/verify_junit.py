@@ -5,10 +5,11 @@ import hashlib
 import json
 import os
 import tempfile
-import xml.etree.ElementTree as ET
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Final
+
+from defusedxml import ElementTree as SafeET
 
 SCHEMA: Final = "glaciereq.anthropic-safety-monitor.test-receipt.v1"
 MAX_JUNIT_BYTES: Final = 5 * 1024 * 1024
@@ -36,13 +37,17 @@ def _atomic_write(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _read_bounded(path: Path) -> bytes:
-    size = path.stat().st_size
-    if size > MAX_JUNIT_BYTES:
+    with path.open("rb") as handle:
+        size = os.fstat(handle.fileno()).st_size
+        if size > MAX_JUNIT_BYTES:
+            raise ValueError(f"JUnit report exceeds {MAX_JUNIT_BYTES} bytes")
+        data = handle.read(MAX_JUNIT_BYTES + 1)
+    if len(data) > MAX_JUNIT_BYTES:
         raise ValueError(f"JUnit report exceeds {MAX_JUNIT_BYTES} bytes")
-    data = path.read_bytes()
     if len(data) != size:
         raise ValueError("JUnit report changed during verification")
-    if any(marker.lower() in data.lower() for marker in FORBIDDEN_XML_MARKERS):
+    lowered = data.lower()
+    if any(marker.lower() in lowered for marker in FORBIDDEN_XML_MARKERS):
         raise ValueError("JUnit report contains a forbidden DTD or entity declaration")
     try:
         data.decode("utf-8")
@@ -51,7 +56,7 @@ def _read_bounded(path: Path) -> bytes:
     return data
 
 
-def _counts(root: ET.Element) -> dict[str, int]:
+def _counts(root: Any) -> dict[str, int]:
     testcases = list(root.iter("testcase"))
     failures = sum(case.find("failure") is not None for case in testcases)
     errors = sum(case.find("error") is not None for case in testcases)
@@ -84,7 +89,12 @@ def verify_junit(
     }
     try:
         data = _read_bounded(junit_path)
-        root = ET.fromstring(data)
+        root = SafeET.fromstring(
+            data,
+            forbid_dtd=True,
+            forbid_entities=True,
+            forbid_external=True,
+        )
         counts = _counts(root)
         receipt.update(counts)
         receipt["junit_sha256"] = hashlib.sha256(data).hexdigest()
