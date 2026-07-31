@@ -3,10 +3,10 @@ from __future__ import annotations
 import re
 import shlex
 from collections import Counter
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Mapping, Sequence
 
 SCHEMA = "glaciereq.anthropic-safety-monitor.review.v1"
 BATCH_SCHEMA = "glaciereq.anthropic-safety-monitor.batch.v1"
