@@ -1,0 +1,36 @@
+{
+  "schema": "glaciereq.operability-receipt.v1",
+  "repository": "GlacierEQ/anthropic-safety-monitor",
+  "at": "2026-08-10T04:12Z",
+  "source_sha": "12465d1fe0ec2d10c9408071ceda39db4425531b62237ed82f16f84b4888bfba",
+  "entry": "scripts/operate.py",
+  "primary_output": {
+    "module": "safety_monitor",
+    "ok": true,
+    "repository": "GlacierEQ/anthropic-safety-monitor",
+    "smoke": {
+      "args": [
+        "ToolCall(name='sample_name', args='', me"
+      ],
+      "content_checked": true,
+      "invoked": true,
+      "kind": "fn",
+      "name": "evaluate",
+      "result": {
+        "call": {
+          "args": "",
+          "metadata": {},
+          "name": "sample_name"
+        },
+        "decision": "allow",
+        "reason": "no configured policy rule matched the proposed call",
+        "requires_human_confirmation": false,
+        "rule_id": "ASM-ALLOW-DEFAULT",
+        "schema": "glaciereq.anthropic-safety-monitor.review.v1",
+        "severity": "none"
+      }
+    }
+  },
+  "dual_run_ok": true,
+  "result": "PASS"
+}

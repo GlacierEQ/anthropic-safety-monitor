@@ -1,21 +1,19 @@
 {
-  "repo": "anthropic-safety-monitor",
-  "algorithm": "sha256",
   "file_count": 14,
   "hashes": {
-    "README.md": "17bcb208b40b6a37a6df2758b934ff7c763ecbf7dd137bba358b0ee97d43f712",
-    "EASTER_EGGS.md": "0c4fc58a6163b54497fc8327ec77f4293330eea4ba636e30db202836bd450900",
-    "AKOS.md": "7fe75c369aef1b05d842fbc5a4a2e347e949787e0a17bec0bb99a2f8b490b9ca",
-    "HELIX_STRAND.md": "191cc20fc5c3770007f731cd9e8bb27b8dd0e11d0642d973bbc54aae0db7b22f",
-    "mastermind_sidecar.py": "a46cd5ad7579fb705e5b76bc9753c745c527ac3f13ce54ddd7c50487fbf10b37",
-    "SECURITY_AND_FLEET_OPS.md": "26141c0f07d95847d679de423ddb7bdee6f3e319d204383c89a58d6d3bb610c7",
-    "ISSUE_CONTRACT.md": "3ef62575c2608c6682515287d485cdc3eab3c4e34b8c5bde84773cd7784b85da",
     ".pytest_cache/CACHEDIR.TAG": "37dc88ef9a0abeddbe81053a6dd8fdfb13afb613045ea1eb4a5c815a74a3bde4",
     ".pytest_cache/README.md": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad",
-    ".pytest_cache/.gitignore": "3ed731b65d06150c138e2dadb0be0697550888a6b47eb8c45ecc9adba8b8e9bd",
     ".pytest_cache/v/cache/nodeids": "701d0fc035727d8fdeeffbe67c2f76848e6e38995a7b7be9fb5d8a6b993cc0fe",
-    "tests/test_safety_monitor.py": "8642800ee2acc6defad3c5dc1b19dfb11db8454c012cfadfae753db42fa7de56",
-    ".github/workflows/ci.yml": "393542f8109cac2611d6ab41b8b062e6cc8be46894379568f15c0b7e2c1a639f",
-    "src/safety_monitor.py": "fcd89a39aee2ba85f4a52c21b5d84ae2ddc745df0ebb5569705f6236c79316a0"
+    "AKOS.md": "7fe75c369aef1b05d842fbc5a4a2e347e949787e0a17bec0bb99a2f8b490b9ca",
+    "EASTER_EGGS.md": "0c4fc58a6163b54497fc8327ec77f4293330eea4ba636e30db202836bd450900",
+    "HELIX_STRAND.md": "191cc20fc5c3770007f731cd9e8bb27b8dd0e11d0642d973bbc54aae0db7b22f",
+    "ISSUE_CONTRACT.md": "3ef62575c2608c6682515287d485cdc3eab3c4e34b8c5bde84773cd7784b85da",
+    "README.md": "43cfbc503e25e9d47175065be61bd063f5c777e3115bac5e4bfa8e9ec7c14df4",
+    "SECURITY_AND_FLEET_OPS.md": "26141c0f07d95847d679de423ddb7bdee6f3e319d204383c89a58d6d3bb610c7",
+    "mastermind_sidecar.py": "a46cd5ad7579fb705e5b76bc9753c745c527ac3f13ce54ddd7c50487fbf10b37",
+    "src/boundary_checker.rs": "be5a7e60c54f3e4a0cc131f0f9ba8f789ac2a68063c78a6a94cb1663d8788b8d",
+    "src/safety_monitor.py": "fcd89a39aee2ba85f4a52c21b5d84ae2ddc745df0ebb5569705f6236c79316a0",
+    "tests/test_boundary_checker.py": "8ea0dca50ef4f978c0634967fa1fdb79842bab9837903fc64d010f2225a674e5",
+    "tests/test_safety_monitor.py": "8642800ee2acc6defad3c5dc1b19dfb11db8454c012cfadfae753db42fa7de56"
   }
 }
