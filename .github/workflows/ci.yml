@@ -69,6 +69,21 @@ jobs:
           assert "answer" not in payload
           PY
 
+      - name: Replay semantic policy baseline
+        run: |
+          python scripts/replay_policy.py --output artifacts/policy-replay.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("artifacts/policy-replay.json").read_text(encoding="utf-8"))
+          assert payload["passed"] is True
+          assert payload["drift_count"] == 0
+          assert payload["scenario_count"] >= 9
+          assert len(payload["baseline_fingerprint"]) == 64
+          assert len(payload["report_fingerprint"]) == 64
+          PY
+
       - name: Run positive-count tests and build receipt
         shell: bash
         run: |
