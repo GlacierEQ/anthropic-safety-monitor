@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Replay the committed policy corpus and write a deterministic semantic-drift receipt."""
+
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from anthropic_safety_monitor.replay import load_scenarios, replay_scenarios
@@ -30,7 +31,7 @@ def main() -> int:
         "GITHUB_REPOSITORY", "GlacierEQ/anthropic-safety-monitor"
     )
     payload["commit"] = os.environ.get("VERIFIED_SHA", os.environ.get("GITHUB_SHA", "local"))
-    payload["generated_at"] = datetime.now(timezone.utc).isoformat()
+    payload["generated_at"] = datetime.now(UTC).isoformat()
     payload["claims_not_established"] = [
         "Anthropic affiliation or internal policy",
         "production Anthropic safety enforcement",

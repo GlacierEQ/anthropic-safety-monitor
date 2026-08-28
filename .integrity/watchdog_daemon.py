@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """Integrity watchdog — SHA-256 baselines for this leaf."""
 import hashlib
 import json
 from pathlib import Path
+
 
 class WatchdogDaemon:
     def __init__(self, repo_root: str | None = None):
@@ -31,6 +33,7 @@ class WatchdogDaemon:
     def verify(self) -> dict:
         cur = self.scan()
         return {p: self.baseline.get(p) == h for p, h in cur.items()}
+
 
 if __name__ == "__main__":
     w = WatchdogDaemon()
