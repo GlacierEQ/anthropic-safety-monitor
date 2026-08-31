@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Anthropic Safety Monitor
 
 **Version:** `1.0.0`  
@@ -65,66 +64,10 @@ Evidence surfaces:
 ```bash
 python -m pip install -e ".[dev]"
 safety-monitor --tool git --args "push --force origin main"
-=======
-# Anthropic Safety Monitor — Action Boundary & Guardrail Governor 🛡️
-
-> **Real-time action boundary checker and safety guardrail enforcer for autonomous agents.**
-
-[![Python](https://img.shields.io/badge/Python-3.9+-blue)]()
-[![Rust](https://img.shields.io/badge/Rust-Safety%20Critical-orange)]()
-[![Domain](https://img.shields.io/badge/Domain-AI%20Safety%20%26%20Alignment-red)]()
-
----
-
-## 🎯 For Recruiters & Hiring Managers
-
-This repository implements a **safety boundary checker** — enforcing hard limits on autonomous agent actions to prevent unauthorized system mutations or runaway loops. It demonstrates:
-
-- **Action boundary validation** with configurable rate and mutation caps
-- **Rust memory-safe safety governor** executing zero-cost compile-time checks
-- **Audit logging** capturing all agent action requests and enforcement decisions
-- **Real-time kill switch** capability for rogue agent containment
-
-**Why this matters**: Deploying autonomous agents into production environments requires strict, deterministic safety guardrails that run outside the model's self-governance.
-
----
-
-## 🔬 For Engineers & Technical Reviewers
-
-### Architecture
-
-```
-Agent Action ──→ Safety Monitor Guard (Rust) ──→ Allow / Deny Decision
-                         │
-                 Boundary Checklist
-            (File Mut Caps, Rate Limits)
-```
-
-### Core Components
-
-| Component | Language | Purpose |
-|---|---|---|
-| `src/safety_monitor.py` | Python | Guardrail policy management and event dispatcher |
-| `src/boundary_checker.rs` | Rust | Zero-overhead compiled boundary enforcer |
-| `tests/` | Python | Adversarial test cases verifying boundary containment |
-
----
-
-## 🤖 ML/AI & Programmatic Mesh Integration
-
-- **MCP Tool**: `check_safety_boundary()` — real-time safety verification for agent tool calls
-- **Mastermind Sidecar**: Publishes security policy violations to APEX Highway mesh
-- **SHA-256 Integrity**: Verified via `.integrity/file_hashes.json`
-
-```rust
-let checker = ActionBoundaryChecker::new(10);
-assert!(checker.validate_mutation());
->>>>>>> a66a2a5 (docs(readme): upgrade to 3-section recruiter/engineer/mesh structure & update SHA-256 baseline)
 ```
 
 The result is structured JSON with `ASM-CONFIRM-002`, not an execution request.
 
-<<<<<<< HEAD
 ## For senior engineers and domain experts
 
 ### Architecture
@@ -170,6 +113,14 @@ The package exposes immutable dataclasses and closed enums through `anthropic_sa
 | `ASM-CONFIRM-006` | confirm | `DROP TABLE` |
 | `ASM-CONFIRM-007` | confirm | Dynamic shell expansion |
 | `ASM-ALLOW-DEFAULT` | allow | No configured rule matched |
+
+### Hash-bound tool transcript receipts
+
+The current source also includes `anthropic_safety_monitor.transcript`, which binds each proposed `ToolCall` to the exact deterministic review result that evaluated it. Each receipt carries a canonical SHA-256 digest and can chain to the prior receipt.
+
+This closes a different failure mode from policy matching: a later system cannot silently swap the reviewed call, decision, rule, or predecessor while presenting the record as the same tool-use event. The chain is local evidence only—it does not execute a tool or turn a confirmation into authorization.
+
+`tests/test_tool_transcript.py` covers deterministic receipt generation, tamper detection, predecessor chaining, malformed digest refusal, and rejection of attempts to bind a review to a different call.
 
 ### Security hardening verified in review
 
@@ -312,11 +263,4 @@ tests/                          policy and verification regression tests
 scripts/                        README and JUnit evidence tools
 receipts/                       immutable promotion evidence
 .github/workflows/ci.yml        direct repository-native verification matrix
-=======
-## ⚡ Quick Start
-
-```bash
-python3 src/safety_monitor.py
-python3 tests/test_boundary_checker.py
->>>>>>> a66a2a5 (docs(readme): upgrade to 3-section recruiter/engineer/mesh structure & update SHA-256 baseline)
 ```
